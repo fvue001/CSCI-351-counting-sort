@@ -18,10 +18,12 @@ csort(unsigned const k,
     return -1;
   }
 
+ # pragma omp parallel num_threads(2) {
+  # pragma omp for
   for (unsigned i = 0; i < n; i++) {
     count[in[i]]++;
   }
-
+}
   unsigned total = 0;
   for (unsigned i = 0; i <= k; i++) {
     unsigned const counti = count[i];
@@ -29,10 +31,13 @@ csort(unsigned const k,
     total += counti;
   }
 
+# pragma omp parallel num_threads(2) {
+ # pragma omp for
   for (unsigned i = 0; i < n; i++) {
     out[count[in[i]]] = in[i];
     count[in[i]]++;
   }
+}
 
   free(count);
 
@@ -56,14 +61,19 @@ main(int argc, char *argv[]) {
     a[i] = rand() % (1u << k);
   }
 
+# pragma omp parallel num_threads(2) {
   /* Sort array */
   int const ret = csort(1u << k, n, a, b);
   assert(0 == ret);
+}
 
+# pragma omp parallel num_threads(2) {
+ # pragma omp for
   /* Validate sorted array */
   for (unsigned i = 1; i < n; i++) {
     assert(b[i] >= b[i - 1]);
   }
+}
 
   /* Free memory */
   free(a);
